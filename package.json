@@ -1,7 +1,7 @@
 {
-  "name": "mocha-spake-maker",
+  "name": "spake-maker",
   "version": "1.0.0",
-  "description": "A spec [spake] maker reporter for mocha",
+  "description": "A spec [spake] maker reporter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nicolasmondain/mocha-spake-maker.git"
+    "url": "git+https://github.com/nicolasmondain/spake-maker.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nicolasmondain/mocha-spake-maker/issues"
+    "url": "https://github.com/nicolasmondain/spake-maker/issues"
   },
-  "homepage": "https://github.com/nicolasmondain/mocha-spake-maker#readme",
+  "homepage": "https://github.com/nicolasmondain/spake-maker#readme",
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
