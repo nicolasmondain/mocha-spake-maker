@@ -1,9 +1,9 @@
 import { Runner, Test, reporters } from 'mocha';
-const { Base } = reporters;
+const { Markdown } = reporters;
 
 import { SPACE_MAKER_TAG } from './constants';
 
-class SpakeMakerReporter extends Base {
+class SpakeMakerReporter extends Markdown {
   private _indents: number = 0;
 
   constructor(runner: Runner) {
@@ -12,13 +12,14 @@ class SpakeMakerReporter extends Base {
 
     runner
       .once(Runner.constants.EVENT_RUN_BEGIN, () => {
-        console.log('start');
+        console.log(':>> start');
       })
       .on(
         Runner.constants.EVENT_SUITE_BEGIN,
         (suite: Mocha.Suite & { [SPACE_MAKER_TAG]?: boolean }) => {
+          console.log(':>> ', SPACE_MAKER_TAG, suite);
           if (suite[SPACE_MAKER_TAG]) {
-            console.log(suite.title);
+            console.log(':>> ', suite.title);
           }
           this.increaseIndent();
         }

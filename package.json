@@ -6,8 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha --require ts-node/register/transpile-only --require tsconfig-paths/register 'src/**/*.test.ts'",
-    "lint": "eslint . --ext .ts",
+    "test": "mocha --reporter src/index.ts --require ts-node/register/transpile-only --require tsconfig-paths/register 'src/**/*.test.ts'",
+    "lint": "eslint src --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write 'src/**/*.ts'",
     "prepare": "npm run build"
