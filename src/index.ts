@@ -20,6 +20,7 @@ class SpakeMakerReporter extends Base {
       file: string;
       path: string;
       specs: Array<string>;
+      percentage: number;
       results: Record<string, number>;
     }
   > = {};
@@ -44,6 +45,7 @@ class SpakeMakerReporter extends Base {
                   file: ut,
                   path: `${split.join('/')}/`,
                   specs: [],
+                  percentage: 0,
                   results: {
                     [Runner.constants.EVENT_TEST_PASS]: 0,
                     [Runner.constants.EVENT_TEST_FAIL]: 0,
@@ -77,7 +79,8 @@ class SpakeMakerReporter extends Base {
           const percentage = Math.round(
             (spake.results[Runner.constants.EVENT_TEST_PASS] / spake.specs.length) * 100
           );
-          const badge = Number.isNaN(percentage)
+          spake.percentage = !Number.isNaN(percentage) ? percentage : 0;
+          const badge = !spake.percentage
             ? ''
             : `![results](https://img.shields.io/badge/Results-${percentage}%-${(percentage >= 100
                 ? SPAKE_PASS_COLOR
@@ -89,10 +92,11 @@ class SpakeMakerReporter extends Base {
           const markdown = `${title}\n${details}\n${specs}`;
 
           fs.writeFileSync(path, markdown);
-          const { stdout, stderr } = await execAsync(`git add ${path}`);
-          console.log('stdout:', stdout);
-          console.error('stderr:', stderr);
+          await execAsync(`git add ${path}`);
         }
+
+        await execAsync(`git commit -m '${SPACE_MAKER_TAG}'`);
+        await execAsync(`git push`);
       });
   }
 }
