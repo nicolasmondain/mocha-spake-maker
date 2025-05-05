@@ -1,4 +1,4 @@
-# <div style="text-align: center; font-size: 5em;">🫀</div> Space Maker
+# 🫀 Space Maker
 
 A **spec [space] maker** (that generates/validates specifications from your test files).
 
