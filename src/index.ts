@@ -1,10 +1,18 @@
 import { Runner, Test, reporters } from 'mocha';
 const { Base } = reporters;
+import fs from 'fs';
+import util from 'node:util';
+import { exec } from 'node:child_process';
+
+const execAsync = util.promisify(exec);
 
 import { SPACE_MAKER_TAG } from './constants';
 
+const SPAKE_PASS_COLOR = '#50C878';
+const SPAKE_PASS_EMOJI = '✅';
+const SPAKE_FAIL_COLOR = '#FF0000';
+const SPAKE_FAIL_EMOJI = '❌';
 class SpakeMakerReporter extends Base {
-  private _indents: number = 0;
   private _specs: Record<
     string,
     {
@@ -12,17 +20,14 @@ class SpakeMakerReporter extends Base {
       file: string;
       path: string;
       specs: Array<string>;
+      results: Record<string, number>;
     }
   > = {};
 
   constructor(runner: Runner) {
     super(runner);
-    const stats = runner.stats || { passes: 0, failures: 0 };
-
     runner
-      .once(Runner.constants.EVENT_RUN_BEGIN, (): void => {
-        console.log(':>> start');
-      })
+      .once(Runner.constants.EVENT_RUN_BEGIN, (): void => {})
       .on(
         Runner.constants.EVENT_SUITE_BEGIN,
         (suite: Mocha.Suite & { [SPACE_MAKER_TAG]?: boolean }): void => {
@@ -39,50 +44,56 @@ class SpakeMakerReporter extends Base {
                   file: ut,
                   path: `${split.join('/')}/`,
                   specs: [],
+                  results: {
+                    [Runner.constants.EVENT_TEST_PASS]: 0,
+                    [Runner.constants.EVENT_TEST_FAIL]: 0,
+                  },
                 };
               }
             }
           }
-          this.increaseIndent();
-        }
-      )
-      .on(
-        Runner.constants.EVENT_SUITE_END,
-        (suite: Mocha.Suite & { [SPACE_MAKER_TAG]?: boolean }): void => {
-          this.decreaseIndent();
         }
       )
       .on(Runner.constants.EVENT_TEST_PASS, (test: Test): void => {
-        // Test#fullTitle() returns the suite name(s)
-        // prepended to the test title
         const title = test.parent?.title ?? '';
         if (this._specs[title]) {
-          this._specs[title].specs.push(`✅ ${test.fullTitle()}`);
+          this._specs[title].specs.push(`${SPAKE_PASS_EMOJI} ${test.fullTitle()}`);
+          this._specs[title].results[Runner.constants.EVENT_TEST_PASS]++;
         }
       })
       // @notes original args .on(Runner.constants.EVENT_TEST_FAIL, (test: Test, err: Error): void => {
-      .on(Runner.constants.EVENT_TEST_FAIL, (test: Test, err: Error): void => {
+      .on(Runner.constants.EVENT_TEST_FAIL, (test: Test): void => {
         const title = test.parent?.title ?? '';
         if (this._specs[title]) {
-          this._specs[title].specs.push(`❌ ${test.fullTitle()}`);
+          this._specs[title].specs.push(`${SPAKE_FAIL_EMOJI} ${test.fullTitle()}`);
+          this._specs[title].results[Runner.constants.EVENT_TEST_FAIL]++;
         }
       })
-      .once(Runner.constants.EVENT_RUN_END, (): void => {
-        console.log(`end: ${stats.passes}/${stats.passes + stats.failures} ok`);
-        console.log(this._specs);
+      .once(Runner.constants.EVENT_RUN_END, async (): Promise<void> => {
+        const specs = Object.values(this._specs);
+        for (const spake of specs) {
+          const name = spake.title.replace(/ /g, '-');
+          const path = `${spake.path}${name}.md`;
+          const percentage = Math.round(
+            (spake.results[Runner.constants.EVENT_TEST_PASS] / spake.specs.length) * 100
+          );
+          const badge = Number.isNaN(percentage)
+            ? ''
+            : `![results](https://img.shields.io/badge/Results-${percentage}%-${(percentage >= 100
+                ? SPAKE_PASS_COLOR
+                : SPAKE_FAIL_COLOR
+              ).replace('#', '')})`;
+          const title = `# ${spake.title} ${badge}`;
+          const details = '';
+          const specs = spake.specs.map((spec): string => `- ${spec}`).join('\n');
+          const markdown = `${title}\n${details}\n${specs}`;
+
+          fs.writeFileSync(path, markdown);
+          const { stdout, stderr } = await execAsync(`git add ${path}`);
+          console.log('stdout:', stdout);
+          console.error('stderr:', stderr);
+        }
       });
-  }
-
-  private indent(): string {
-    return Array(this._indents).join('  ');
-  }
-
-  private increaseIndent(): void {
-    this._indents += 1;
-  }
-
-  private decreaseIndent(): void {
-    this._indents -= 1;
   }
 }
 

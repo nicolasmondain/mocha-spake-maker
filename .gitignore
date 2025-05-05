@@ -5,7 +5,7 @@ node_modules/
 dist/
 
 # Specs
-specs/
+# specs/
 
 # Logs
 *.log
