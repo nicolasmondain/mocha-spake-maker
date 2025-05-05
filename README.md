@@ -1,11 +1,11 @@
-# Spake Maker
+# Space Maker
 
-A spec [spake] maker (that generates spec documentation from your test files).
+A spec [space] maker (that generates spec documentation from your test files).
 
 ## Installation
 
 ```bash
-npm install spake-maker
+npm install space-maker
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ Add the reporter to your Mocha configuration:
 ```json
 {
   "scripts": {
-    "test": "mocha --reporter spake-maker"
+    "test": "mocha --reporter space-maker"
   }
 }
 ```

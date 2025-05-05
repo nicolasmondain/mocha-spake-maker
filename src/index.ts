@@ -8,11 +8,11 @@ const execAsync = util.promisify(exec);
 
 import { SPACE_MAKER_TAG } from './constants';
 
-const SPAKE_PASS_COLOR = '#50C878';
-const SPAKE_PASS_EMOJI = '✅';
-const SPAKE_FAIL_COLOR = '#FF0000';
-const SPAKE_FAIL_EMOJI = '❌';
-class SpakeMakerReporter extends Base {
+const SPACE_PASS_COLOR = '#50C878';
+const SPACE_PASS_EMOJI = '✅';
+const SPACE_FAIL_COLOR = '#FF0000';
+const SPACE_FAIL_EMOJI = '❌';
+class SpaceMakerReporter extends Base {
   private _specs: Record<
     string,
     {
@@ -59,7 +59,7 @@ class SpakeMakerReporter extends Base {
       .on(Runner.constants.EVENT_TEST_PASS, (test: Test): void => {
         const title = test.parent?.title ?? '';
         if (this._specs[title]) {
-          this._specs[title].specs.push(`${SPAKE_PASS_EMOJI} ${test.fullTitle()}`);
+          this._specs[title].specs.push(`${SPACE_PASS_EMOJI} ${test.fullTitle()}`);
           this._specs[title].results[Runner.constants.EVENT_TEST_PASS]++;
         }
       })
@@ -67,28 +67,28 @@ class SpakeMakerReporter extends Base {
       .on(Runner.constants.EVENT_TEST_FAIL, (test: Test): void => {
         const title = test.parent?.title ?? '';
         if (this._specs[title]) {
-          this._specs[title].specs.push(`${SPAKE_FAIL_EMOJI} ${test.fullTitle()}`);
+          this._specs[title].specs.push(`${SPACE_FAIL_EMOJI} ${test.fullTitle()}`);
           this._specs[title].results[Runner.constants.EVENT_TEST_FAIL]++;
         }
       })
       .once(Runner.constants.EVENT_RUN_END, async (): Promise<void> => {
         const specs = Object.values(this._specs);
-        for (const spake of specs) {
-          const name = spake.title.replace(/ /g, '-');
-          const path = `${spake.path}${name}.md`;
+        for (const spaceMaker of specs) {
+          const name = spaceMaker.title.replace(/ /g, '-');
+          const path = `${spaceMaker.path}${name}.md`;
           const percentage = Math.round(
-            (spake.results[Runner.constants.EVENT_TEST_PASS] / spake.specs.length) * 100
+            (spaceMaker.results[Runner.constants.EVENT_TEST_PASS] / spaceMaker.specs.length) * 100
           );
-          spake.percentage = !Number.isNaN(percentage) ? percentage : 0;
-          const badge = !spake.percentage
+          spaceMaker.percentage = !Number.isNaN(percentage) ? percentage : 0;
+          const badge = !spaceMaker.percentage
             ? ''
             : `![results](https://img.shields.io/badge/Results-${percentage}%-${(percentage >= 100
-                ? SPAKE_PASS_COLOR
-                : SPAKE_FAIL_COLOR
+                ? SPACE_PASS_COLOR
+                : SPACE_FAIL_COLOR
               ).replace('#', '')})`;
-          const title = `# ${spake.title} ${badge}`;
+          const title = `# ${spaceMaker.title} ${badge}`;
           const details = '';
-          const specs = spake.specs.map((spec): string => `- ${spec}`).join('\n');
+          const specs = spaceMaker.specs.map((spec): string => `- ${spec}`).join('\n');
           const markdown = `${title}\n${details}\n${specs}`;
 
           fs.writeFileSync(path, markdown);
@@ -101,4 +101,4 @@ class SpakeMakerReporter extends Base {
   }
 }
 
-export = SpakeMakerReporter;
+export = SpaceMakerReporter;
