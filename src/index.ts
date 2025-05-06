@@ -6,12 +6,14 @@ import { exec } from 'node:child_process';
 
 const execAsync = util.promisify(exec);
 
-import { SPACE_MAKER_TAG } from './constants';
+import {
+  SPACE_MAKER_TAG,
+  SPACE_PASS_COLOR,
+  SPACE_PASS_EMOJI,
+  SPACE_FAIL_COLOR,
+  SPACE_FAIL_EMOJI,
+} from './constants';
 
-const SPACE_PASS_COLOR = '#50C878';
-const SPACE_PASS_EMOJI = '✅';
-const SPACE_FAIL_COLOR = '#FF0000';
-const SPACE_FAIL_EMOJI = '❌';
 class SpaceMakerReporter extends Base {
   private _specs: Record<
     string,
