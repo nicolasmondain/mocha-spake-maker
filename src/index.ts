@@ -1,10 +1,11 @@
+import { BlockObjectRequest } from '@notionhq/client';
+
 import { Runner, Test, reporters } from 'mocha';
-const { Base } = reporters;
 import fs from 'fs';
 import util from 'node:util';
 import { exec } from 'node:child_process';
-
-const execAsync = util.promisify(exec);
+import { Client } from '@notionhq/client';
+import dotenv from 'dotenv';
 
 import {
   SPACE_MAKER_TAG,
@@ -12,7 +13,15 @@ import {
   SPACE_PASS_EMOJI,
   SPACE_FAIL_COLOR,
   SPACE_FAIL_EMOJI,
+  SPACE_CONFIG_FILE,
 } from './constants';
+
+dotenv.config();
+
+const { Base } = reporters;
+const execAsync = util.promisify(exec);
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
+const config = JSON.parse(fs.readFileSync(SPACE_CONFIG_FILE, 'utf8'));
 
 class SpaceMakerReporter extends Base {
   private _specs: Record<
@@ -95,8 +104,50 @@ class SpaceMakerReporter extends Base {
 
           fs.writeFileSync(path, markdown);
           await execAsync(`git add ${path}`);
+
+          const page = config.pages[name];
+          if (page) {
+            // const response = await notion.pages.retrieve({ page_id: page });
+            // @notes update existing Notion page
+          } else {
+            const response = await notion.pages.create({
+              parent: {
+                type: 'database_id',
+                database_id: process.env.NOTION_DATABASE_ID ?? '',
+              },
+              properties: {
+                ['Nom du document']: {
+                  title: [
+                    {
+                      text: {
+                        content: title,
+                      },
+                    },
+                  ],
+                },
+              },
+              children: spaceMaker.specs.map(
+                (spec): BlockObjectRequest => ({
+                  object: 'block',
+                  paragraph: {
+                    rich_text: [
+                      {
+                        text: {
+                          content: spec,
+                        },
+                      },
+                    ],
+                  },
+                })
+              ),
+            });
+            config.pages[name] = response.id;
+          }
         }
 
+        fs.writeFileSync(SPACE_CONFIG_FILE, JSON.stringify(config, null, 2));
+
+        await execAsync(`git add ${SPACE_CONFIG_FILE}`);
         await execAsync(`git commit -m '${SPACE_MAKER_TAG}'`);
         await execAsync(`git push`);
       });

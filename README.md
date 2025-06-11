@@ -32,5 +32,3 @@ flowchart LR
 ```
 
 The test results listed in the `markdown` are intended to highlight which specifications are covered by tests - demonstrating that the requested functionalities are properly secured.
-
-
